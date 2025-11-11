@@ -1,6 +1,8 @@
 name: Run Script Hourly
 on:
-  workflow_dispatch:     # Manual trigger
+  schedule:
+    - cron: '0 * * * *' # Every hour
+  workflow_dispatch:
 jobs:
   run-script:
     runs-on: ubuntu-latest
@@ -9,48 +11,38 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Set up Python 3.11
+        
+      # Setup Python and Cache/Install dependencies in one consolidated block
+      - name: Setup Python and Install dependencies
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      # 🚀 Key Optimization: Cache Python Dependencies
-      - name: Cache Python dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          # This enables built-in caching for pip dependencies
+          cache: 'pip' 
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Installation will be skipped if cache is hit, saving significant time.
           pip install -r requirements.txt
 
-      # 🛠️ Combine simple steps for efficiency
-      - name: Prepare and Run the script
+      # Prepare and Run the script in a single step
+      - name: Execute Script
         run: |
           chmod +x run.sh
           ./run.sh
 
-      # 💾 Efficiently Push changes
-      - name: Push changes
+      # Push changes, streamlined
+      - name: Commit and Push Changes
         run: |
-          # Use GITHUB_TOKEN for configuration instead of setting user/email manually.
           git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com" # Use the standard actions email
+          git config user.email "github-actions@users.noreply.github.com"
           
           git add .
-          # Check for changes and commit only if there are changes
-          if git diff-index --quiet HEAD; then
-            echo "No changes to commit."
-          else
+          if ! git diff-index --quiet HEAD; then
             git commit -m "Auto-commit: $(date +'%Y-%m-%d %H:%M:%S')"
-            git push origin main
+            git push
+          else
+            echo "No changes to commit. Skipping push."
           fi
         env:
-          # Use the default token provided by GitHub Actions
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
