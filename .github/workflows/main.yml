@@ -28,6 +28,7 @@ jobs:
       # Prepare and Run the script in a single step
       - name: Execute Script
         run: |
+          ls ./
           chmod +x run.sh
           ./run.sh
 
