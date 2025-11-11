@@ -10,13 +10,13 @@ jobs:
       PYTHONDONTWRITEBYTECODE: 1
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         
       # Setup Python and Cache/Install dependencies in one consolidated block
       - name: Setup Python and Install dependencies
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           # This enables built-in caching for pip dependencies
           cache: 'pip' 
 
